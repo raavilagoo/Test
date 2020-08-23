@@ -16,6 +16,7 @@ import {
 
 export const STATE_UPDATED = '@controller/STATE_UPDATED'
 export const PARAMETER_COMMITTED = '@controller/PARAMETER_COMMITTED'
+export const THEME_SWITCHED = '@controller/THEME_SWITCHED'
 
 // Protocol Buffers
 
@@ -49,6 +50,11 @@ export enum MessageType {
   RotaryEncoder = 128
 };
 
+export enum ThemeVariant {
+  DARK = 1,
+  LIGHT = 2
+}
+
 // States
 
 export interface WaveformPoint {
@@ -79,6 +85,7 @@ export interface ControllerStates {
   // Derived states
   waveformHistoryPaw: WaveformHistory;
   waveformHistoryFlow: WaveformHistory;
+  theme: ThemeVariant
 };
 
 export const MessageClass = new Map<MessageType, PBMessageType>([
@@ -123,3 +130,10 @@ interface ParameterCommittedAction {
 };
 
 export type ParameterCommitAction = ParameterCommittedAction;
+
+// Switch Theme Action
+
+export interface SwitchThemeAction {
+  type: typeof THEME_SWITCHED
+  theme: any
+};
