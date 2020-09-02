@@ -55,4 +55,12 @@ enum class PWMStatus {
   halError /// error starting or stopping the PWM generator
 };
 
+/**
+  * An outcome of performing an operation on ADC
+  */
+enum class ADCStatus {
+  ok = 0,
+  error
+};
+
 }  // namespace Pufferfish
