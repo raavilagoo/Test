@@ -146,7 +146,10 @@ export const getWaveformHistoryFlow = createSelector(
   getController,
   (states: ControllerStates): WaveformHistory => states.waveformHistoryFlow,
 );
-// Fow Waveforms
+export const getWaveformHistoryVolume = createSelector(
+  getController,
+  (states: ControllerStates): WaveformHistory => states.waveformHistoryVolume,
+);
 export const getWaveformFlowOld = createSelector(
   getWaveformHistoryFlow,
   (waveformHistory: WaveformHistory): WaveformPoint[] => waveformHistory.waveformOld.full,
@@ -160,6 +163,22 @@ export const getWaveformFlowNewSegment = (
 ): OutputSelector<StoreState, WaveformPoint[], unknown> =>
   createSelector(
     getWaveformFlowNewSegments,
+    (waveformSegments: WaveformPoint[][]): WaveformPoint[] => waveformSegments[segmentIndex],
+  );
+// Volume Waveforms
+export const getWaveformVolumeOld = createSelector(
+  getWaveformHistoryVolume,
+  (waveformHistory: WaveformHistory): WaveformPoint[] => waveformHistory.waveformOld.full,
+);
+export const getWaveformVolumeNewSegments = createSelector(
+  getWaveformHistoryVolume,
+  (waveformHistory: WaveformHistory): WaveformPoint[][] => waveformHistory.waveformNew.segmented,
+);
+export const getWaveformVolumeNewSegment = (
+  segmentIndex: number,
+): OutputSelector<StoreState, WaveformPoint[], unknown> =>
+  createSelector(
+    getWaveformVolumeNewSegments,
     (waveformSegments: WaveformPoint[][]): WaveformPoint[] => waveformSegments[segmentIndex],
   );
 
