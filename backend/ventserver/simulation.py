@@ -5,28 +5,29 @@ import time
 import typing
 from typing import Mapping, Optional, Type
 
+import betterproto
+
 import trio
 
 from ventserver.integration import _trio
 from ventserver.io.trio import channels
 from ventserver.io.trio import websocket
-from ventserver.protocols import application
 from ventserver.protocols import server
 from ventserver.protocols.protobuf import mcu_pb
 
 
 async def simulate_states(
         all_states: Mapping[
-            Type[application.PBMessage], Optional[application.PBMessage]
+            Type[betterproto.Message], Optional[betterproto.Message]
         ]
 ) -> None:
     """Simulate evolution of all states."""
-    current_time = time.time() * 1000
-    initial_time = current_time
-    previous_time = current_time
-    time_step = current_time - previous_time
+    current_time = time.time() * 1000  # ms
+    initial_time = current_time  # ms
+    previous_time = current_time  # ms
+    time_step = current_time - previous_time  # ms
     time_step = time_step if time_step > 0 else 1.0
-    cycle_start_time = 0.0
+    cycle_start_time = 0.0  # ms
     sensor_update_interval = 2.0  # ms
     cycle_period = 2000.0  # ms
     insp_period = 1000.0  # ms
@@ -72,6 +73,7 @@ async def simulate_states(
             sensor_measurements.flow = insp_init_flow_rate
             sensor_measurements.volume = 0
             insp_period = cycle_period / (1 + 1 / parameters.ie)
+            sensor_measurements.cycle += 1
             # Cycle Measurements
             cycle_measurements.rr = parameters.rr + random.random() - 0.5
             cycle_measurements.peep = parameters.peep + random.random() - 0.5
@@ -129,10 +131,7 @@ async def main() -> None:
     all_states[mcu_pb.CycleMeasurements] = mcu_pb.CycleMeasurements()
     all_states[mcu_pb.SensorMeasurements] = mcu_pb.SensorMeasurements()
     all_states[mcu_pb.ParametersRequest] = mcu_pb.ParametersRequest(
-        mode=mcu_pb.VentilationMode(
-            support=mcu_pb.SpontaneousSupport.ac,
-            cycling=mcu_pb.VentilationCycling.pc
-        ),
+        mode=mcu_pb.VentilationMode.pc_ac,
         pip=30, peep=10, rr=30, ie=1, fio2=60
     )
 
