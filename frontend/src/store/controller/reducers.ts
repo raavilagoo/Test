@@ -33,6 +33,7 @@ import {
   FRONTEND_DISPLAY_SETTINGS,
   SYSTEM_SETTINGS,
   commitAction,
+  RotaryEncoderParameter,
   ALARM_LIMITS_STANDBY,
   PARAMETER_STANDBY,
 } from './types';
@@ -45,12 +46,29 @@ const messageReducer = <T extends PBMessage>(
   switch (action.type) {
     case STATE_UPDATED:
       if (action.messageType === messageType) {
+        if (action.messageType === MessageType.RotaryEncoder) {
+          const updatedState = calculateStepDiff(
+            state as RotaryEncoder,
+            action.state as RotaryEncoder,
+          );
+          return updatedState as T;
+        }
         return action.state as T;
       }
       return state;
     default:
       return state;
   }
+};
+
+const calculateStepDiff = (
+  oldState: RotaryEncoder,
+  newState: RotaryEncoder,
+): RotaryEncoderParameter => {
+  const stepDiff = newState.step - oldState.step;
+  const stateCopy = { ...newState } as RotaryEncoderParameter;
+  stateCopy.stepDiff = stepDiff;
+  return stateCopy;
 };
 
 const alarmLimitsReducer = (
@@ -365,7 +383,7 @@ export const controllerReducer = combineReducers({
   announcement: messageReducer<Announcement>(MessageType.Announcement, Announcement),
 
   // Message states from frontend_pb
-  rotaryEncoder: messageReducer<RotaryEncoder>(MessageType.RotaryEncoder, RotaryEncoder),
+  rotaryEncoder: messageReducer<RotaryEncoderParameter>(MessageType.RotaryEncoder, RotaryEncoder),
 
   // Derived states
   waveformHistoryPaw: waveformHistoryReducer<SensorMeasurements>(
