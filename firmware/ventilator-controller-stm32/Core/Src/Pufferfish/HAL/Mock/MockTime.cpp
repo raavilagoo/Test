@@ -1,6 +1,6 @@
-/// MockDigitalInput.cpp
-/// This file has methods for mock abstract interfaces for testing Digital
-/// Input.
+/// MockPWM.cpp
+/// This file has methods for mock abstract interfaces for testing Time
+/// related methods.
 
 // Copyright (c) 2020 Pez-Globo and the Pufferfish project contributors
 // SPDX-License-Identifier: Apache-2.0
@@ -19,18 +19,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "Pufferfish/HAL/Mock/MockDigitalInput.h"
+#include "Pufferfish/HAL/Mock/MockTime.h"
 
 namespace Pufferfish::HAL {
 
-bool MockDigitalInput::read() {
-  /* return lastInput, set during the setRead */
-  return last_input_;
+void MockTime::set_millis(uint32_t input) {
+  millis_value_ = input;
 }
 
-void MockDigitalInput::set_read(bool setting) {
-  /* Update the lastInput with input setting value */
-  last_input_ = setting;
+uint32_t MockTime::millis() {
+  return millis_value_;
+}
+
+void MockTime::delay(uint32_t ms) {
+  for (volatile uint32_t value = 0; value < ms; value++) {
+    /* do nothing */
+  }
+}
+
+void MockTime::set_micros(uint32_t input) {
+  micros_value_ = input;
+}
+
+uint32_t MockTime::micros() {
+  return micros_value_;
+}
+
+void MockTime::delay_micros(uint32_t microseconds) {
+  for (volatile uint32_t value = 0; value < microseconds; value++) {
+    /* do nothing */
+  }
 }
 
 }  // namespace Pufferfish::HAL
