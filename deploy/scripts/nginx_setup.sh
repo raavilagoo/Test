@@ -15,6 +15,14 @@ sudo apt install nginx -y
 script_dir=$(dirname $(realpath $0))
 frontend_dir=$script_dir/../../frontend
 
+nginx_conf='/etc/nginx/nginx.conf'
+
+# Adding 404 redirection to nginx configuration
+if [ 0 -eq $( grep -c 'error_page 404 /;' $nginx_conf ) ]
+then
+    sudo sed -i '/access.log/i\\terror_page 404 /;' $nginx_conf
+fi
+
 if [ 0 -eq $( ls $frontend_dir | grep -c "build" ) ]
 then
     echo -e "${WARNING} Build files not found${NC}"
