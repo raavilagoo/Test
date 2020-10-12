@@ -76,6 +76,7 @@ class Driver(endpoints.IOEndpoint[bytes, bytes]):
             return
 
         try:
+            # check Type Error
             await self._stream.send_all(data)
         except (trio.BrokenResourceError, trio.ClosedResourceError) as errs:
             await self.close()

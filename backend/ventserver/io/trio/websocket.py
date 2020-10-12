@@ -10,6 +10,7 @@ import trio
 
 import trio_websocket  # type: ignore
 
+from ventserver.protocols import exceptions
 from ventserver.io import websocket
 from ventserver.io.trio import endpoints
 
@@ -213,6 +214,11 @@ class Driver(endpoints.IOEndpoint[bytes, bytes]):
         except trio_websocket.ConnectionClosed as err:
             raise BrokenPipeError(
                 'WebSocket connection lost in write!'
+            ) from err
+        except ValueError as err:
+            raise exceptions.ProtocolDataError(
+                'Expected payload type to be str or bytes, but found {}'.
+                format(type(data))
             ) from err
         self._logger.debug('Sent: %s', data)
 
