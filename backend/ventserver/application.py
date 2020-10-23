@@ -7,11 +7,6 @@ import functools
 import trio
 import betterproto
 
-try:
-    from ventserver.io.trio import rotaryencoder
-except RuntimeError:
-    logging.getLogger().warning('Running without pigpio!')
-
 from ventserver.integration import _trio
 from ventserver.io.trio import _serial
 from ventserver.io.trio import channels
