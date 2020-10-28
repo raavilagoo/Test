@@ -7,19 +7,13 @@
 # Installs fail2ban
 # Disables Wifi
 
-# Message colours
-ERROR='\033[1;31mERROR:'
-SUCCESS='\033[1;32m'
-WARNING='\033[1;33mWARNING:'
-NC='\033[0m'
+# Importing logging colours, absolute paths and exit function
+script_dir=$(dirname $(realpath $0))
+. $script_dir/helper.sh
 
 echo -e "\n${SUCCESS}********** Setting up Network Security **********\n${NC}"
 
-# Getting absolute path of config files
-script_dir=$(dirname $(realpath $0))
-config_dir=$script_dir/../configs
-
-sudo apt install openssh-server nginx ufw fail2ban -y
+sudo apt install openssh-server nginx ufw fail2ban -y || exit_script "Could not install required packages"
 
 # Deny ssh for pi user
 if [ 0 -eq $( grep -c "^DenyUsers pi" /etc/ssh/sshd_config ) ]

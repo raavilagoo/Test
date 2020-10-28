@@ -3,21 +3,14 @@
 # Calculates hash value for OS Config, backend and frontend files
 # Sets up tampering service to check for tampering before starting backend and kiosk mode
 
-# Message colours
-ERROR='\033[1;31mERROR:'
-SUCCESS='\033[1;32m'
-WARNING='\033[1;33mWARNING:'
-NC='\033[0m'
+# Importing logging colours, absolute paths and exit function
+script_dir=$(dirname $(realpath $0))
+. $script_dir/helper.sh
 
 echo -e "\n${SUCCESS}********** Setting up Tampering Security **********\n${NC}"
 
-# Getting absolute path of config files
-script_dir=$(dirname $(realpath $0))
-config_dir=$script_dir/../configs
-backend_dir=$(realpath $script_dir/../../backend/ventserver)
-
 # Installing dirhash module
-pip3 install dirhash
+pip3 install dirhash || exit_script "Could not install dirhash module"
 
 # Copy target file to systemd directory
 if [ 1 -eq $( ls $config_dir | grep -c "pufferfish.target" ) ]
