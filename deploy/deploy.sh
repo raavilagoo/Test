@@ -36,12 +36,13 @@ $script_dir/scripts/overlayfs.sh
 # Disable unnecessary background services
 $script_dir/scripts/disable_services.sh
 
-# Setup security protocols
-$script_dir/scripts/security.sh
+# Setup network security protocols
+$script_dir/scripts/security_network.sh
 
-echo -n "Reboot required for changes to take effect. Do you want to reboot now? [y/N]: "
-read answer
-if echo "$answer" | grep -iq "^y"
-then
-    sudo reboot
-fi
+# Setup tampering security protocols
+$script_dir/scripts/security_tampering.sh
+
+# Setup user security protocols
+$script_dir/scripts/security_user.sh
+
+echo -e "Reboot required for changes to take effect. Please restart!"
