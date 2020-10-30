@@ -13,6 +13,7 @@ from ventserver.io.trio import channels
 from ventserver.io.trio import websocket
 from ventserver.io.trio import fileio
 from ventserver.io.trio import rotaryencoder
+from ventserver.io.subprocess import frozen_frontend
 from ventserver.protocols import server
 from ventserver.protocols import exceptions
 from ventserver.protocols.protobuf import mcu_pb
@@ -97,6 +98,11 @@ async def main() -> None:
                         serial_endpoint, websocket_endpoint,
                         filehandler
                     )
+
+                    if receive_output.frontend_delayed:
+                        nursery.start_soon(
+                            frozen_frontend.kill_frozen_frontend
+                        )
                 nursery.cancel_scope.cancel()
     except trio.EndOfChannel:
         logger.info('Finished, quitting!')

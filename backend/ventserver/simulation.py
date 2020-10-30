@@ -17,6 +17,7 @@ from ventserver.integration import _trio
 from ventserver.io.trio import channels
 from ventserver.io.trio import websocket
 from ventserver.io.trio import fileio
+from ventserver.io.subprocess import frozen_frontend
 from ventserver.protocols import server
 from ventserver.protocols import exceptions
 from ventserver.protocols.protobuf import mcu_pb
@@ -375,7 +376,6 @@ async def main() -> None:
     await _trio.load_file_states(
         states, protocol, filehandler
     )
-
     try:
         async with channel.push_endpoint:
             async with trio.open_nursery() as nursery:
@@ -393,6 +393,13 @@ async def main() -> None:
                         receive_output.server_send, protocol,
                         None, websocket_endpoint, filehandler
                     )
+
+                    if receive_output.frontend_delayed:
+                        print("calling")
+                        nursery.start_soon(
+                            frozen_frontend.kill_frozen_frontend
+                        )
+
                 nursery.cancel_scope.cancel()
     except trio.EndOfChannel:
         print('Finished, quitting!')
