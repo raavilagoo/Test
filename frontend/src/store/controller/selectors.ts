@@ -3,6 +3,8 @@ import { StoreState } from '../types';
 import { FrontendDisplaySetting, SystemSettingRequest } from './proto/frontend_pb';
 import {
   AlarmLimitsRequest,
+  AlarmMute,
+  AlarmMuteRequest,
   Alarms,
   CycleMeasurements,
   LogEvent,
@@ -279,4 +281,16 @@ export const getBatteryPower = createSelector(
 export const getScreenStatus = createSelector(
   getController,
   (states: ControllerStates): boolean => states.screenStatus.lock,
+);
+
+// Alarm mute Status
+export const getAlarmMuteRequest = createSelector(
+  getController,
+  (states: ControllerStates): AlarmMuteRequest => states.alarmMuteRequest,
+);
+
+// TODO: Need to change state from 'alarmMuteRequest' to 'alarmMute'
+export const getAlarmMuteStatus = createSelector(
+  getController,
+  (states: ControllerStates): AlarmMute => states.alarmMuteRequest,
 );
