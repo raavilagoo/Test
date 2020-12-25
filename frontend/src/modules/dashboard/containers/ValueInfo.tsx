@@ -4,6 +4,7 @@ import { shallowEqual, useSelector } from 'react-redux';
 import { getAlarmLimitsRequest } from '../../../store/controller/selectors';
 import { AlarmModal } from '../../controllers';
 import { SelectorType, ValueSelectorDisplay } from '../../displays/ValueSelectorDisplay';
+import { Range } from '../../../store/controller/proto/mcu_pb';
 
 const useStyles = makeStyles((theme: Theme) => ({
   rootParent: {
@@ -166,7 +167,7 @@ const ControlValuesDisplay = ({
 }: Props): JSX.Element => {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
-  const alarmLimits = useSelector(getAlarmLimitsRequest, shallowEqual) as Record<string, number>;
+  const alarmLimits = useSelector(getAlarmLimitsRequest, shallowEqual) as Record<string, Range>;
   const onClick = () => {
     setOpen(true);
   };
@@ -208,10 +209,10 @@ const ControlValuesDisplay = ({
               {stateKey && (
                 <Grid container item xs={3} className={classes.liveContainer}>
                   <Typography className={classes.whiteFont}>
-                    {alarmLimits[`${stateKey}Min`]}
+                    {alarmLimits[stateKey].lower}
                   </Typography>
                   <Typography className={classes.whiteFont}>
-                    {alarmLimits[`${stateKey}Max`]}
+                    {alarmLimits[stateKey].upper}
                   </Typography>
                 </Grid>
               )}
@@ -263,7 +264,7 @@ const GridControlValuesDisplay = ({
 }: Props): JSX.Element => {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
-  const alarmLimits = useSelector(getAlarmLimitsRequest, shallowEqual) as Record<string, number>;
+  const alarmLimits = useSelector(getAlarmLimitsRequest, shallowEqual) as Record<string, Range>;
   const onClick = () => {
     setOpen(true);
   };
@@ -312,10 +313,10 @@ const GridControlValuesDisplay = ({
               {stateKey && (
                 <Grid item xs className={classes.gridLiveContainer}>
                   <Typography className={classes.whiteFont}>
-                    {alarmLimits[`${stateKey}Min`]}
+                    {alarmLimits[stateKey].lower}
                   </Typography>
                   <Typography className={classes.whiteFont}>
-                    {alarmLimits[`${stateKey}Max`]}
+                    {alarmLimits[stateKey].upper}
                   </Typography>
                 </Grid>
               )}

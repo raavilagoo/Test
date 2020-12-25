@@ -6,13 +6,13 @@ import {
   AlarmLimitsRequest,
   AlarmMute,
   AlarmMuteRequest,
-  Alarms,
   CycleMeasurements,
   LogEvent,
   Parameters,
   ParametersRequest,
   SensorMeasurements,
   VentilationMode,
+  Range,
 } from './proto/mcu_pb';
 import {
   ControllerStates,
@@ -29,12 +29,6 @@ const roundValue = (value: number) => {
     : 0;
 };
 export const getController = ({ controller }: StoreState): ControllerStates => controller;
-
-// Alarms
-export const getAlarms = createSelector(
-  getController,
-  (states: ControllerStates): Alarms => states.alarms,
-);
 
 // SensorMeasurements
 export const getSensorMeasurements = createSelector(
@@ -233,13 +227,13 @@ export const getPVLoop = createSelector(
 // Alarm Limits
 export const getAlarmLimitsRequest = createSelector(
   getController,
-  (states: ControllerStates): AlarmLimitsRequest | Record<string, number> =>
+  (states: ControllerStates): AlarmLimitsRequest | Record<string, Range> =>
     states.alarmLimitsRequest,
 );
 
 export const getAlarmLimitsRequestStandby = createSelector(
   getController,
-  (states: ControllerStates): AlarmLimitsRequest | Record<string, number> =>
+  (states: ControllerStates): AlarmLimitsRequest | Record<string, Range> =>
     states.alarmLimitsRequestStandby.alarmLimits as AlarmLimitsRequest,
 );
 
@@ -253,12 +247,6 @@ export const getFrontendDisplaySetting = createSelector(
 export const getSystemSettingRequest = createSelector(
   getController,
   (states: ControllerStates): SystemSettingRequest => states.systemSettingRequest,
-);
-
-// New Log event
-export const getLogEvent = createSelector(
-  getController,
-  (states: ControllerStates): LogEvent => states.logEvent,
 );
 
 // Next Log Events
