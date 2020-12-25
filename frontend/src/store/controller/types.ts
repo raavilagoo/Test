@@ -134,6 +134,16 @@ export interface PVHistory {
   cycle: number;
 }
 
+export interface SmoothingData {
+  raw: number;
+  average: number;
+  converged: number;
+  smoothed: number;
+  time?: number;
+  convergenceStartTime?: number;
+  changeStartTime?: number;
+}
+
 export interface ControllerStates {
   // Message states from mcu_pb
   sensorMeasurements: SensorMeasurements;
@@ -159,6 +169,11 @@ export interface ControllerStates {
   rotaryEncoder: RotaryEncoderParameter;
 
   // Derived states
+  smoothedMeasurements: {
+    spo2: SmoothingData;
+    fio2: SmoothingData;
+    flow: SmoothingData;
+  };
   waveformHistoryPaw: WaveformHistory;
   waveformHistoryFlow: WaveformHistory;
   waveformHistoryVolume: WaveformHistory;
