@@ -8,6 +8,7 @@ import { updateCommittedParameter } from '../../store/controller/actions';
 import { VentilationMode } from '../../store/controller/proto/mcu_pb';
 import {
   getBatteryPower,
+  getChargingStatus,
   getIsVentilating,
   getParametersRequestMode,
   getParametersRequestStandby,
@@ -15,6 +16,10 @@ import {
 import ViewDropdown from '../dashboard/views/ViewDropdown';
 import { BackIcon } from '../icons';
 import ClockIcon from '../icons/ClockIcon';
+import Power25Icon from '../icons/Power25Icon';
+import Power50Icon from '../icons/Power50Icon';
+import Power75Icon from '../icons/Power75Icon';
+import PowerChargingIcon from '../icons/PowerChargingIcon';
 import PowerFullIcon from '../icons/PowerFullIcon';
 import { PERCENT } from '../info/units';
 import ModesDropdown from '../modes/ModesDropdown';
@@ -48,6 +53,38 @@ export const HeaderClock = (): JSX.Element => {
   return <span className={classes.paddingRight}>{clockTime}</span>;
 };
 
+const PowerIndicator = (): JSX.Element => {
+  const classes = useStyles();
+  const batteryPower = useSelector(getBatteryPower);
+  const chargingStatus = useSelector(getChargingStatus);
+  const [icon, setIcon] = useState(<PowerFullIcon style={{ fontSize: '2.5rem' }} />);
+
+  useEffect(() => {
+    if (batteryPower >= 0 && batteryPower <= 25) {
+      setIcon(<Power25Icon style={{ fontSize: '2.5rem' }} />);
+    } else if (batteryPower > 25 && batteryPower <= 50) {
+      setIcon(<Power50Icon style={{ fontSize: '2.5rem' }} />);
+    } else if (batteryPower > 50 && batteryPower <= 75) {
+      setIcon(<Power75Icon style={{ fontSize: '2.5rem' }} />);
+    } else {
+      setIcon(<PowerFullIcon style={{ fontSize: '2.5rem' }} />);
+    }
+
+    if (chargingStatus) {
+      setIcon(<PowerChargingIcon style={{ fontSize: '2.5rem' }} />);
+    }
+  }, [batteryPower, chargingStatus]);
+
+  return (
+    <React.Fragment>
+      <span className={classes.paddingRight}>{`${
+        batteryPower !== undefined ? batteryPower.toFixed(0) : '--'
+      }${PERCENT}`}</span>
+      {icon}
+    </React.Fragment>
+  );
+};
+
 /**
  * ToolBar
  *
@@ -70,7 +107,6 @@ export const ToolBar = ({
   const currentMode = useSelector(getParametersRequestMode);
   const parameterRequestStandby = useSelector(getParametersRequestStandby, shallowEqual);
   const ventilating = useSelector(getIsVentilating);
-  const batteryPower = useSelector(getBatteryPower);
   const [isVentilatorOn, setIsVentilatorOn] = React.useState(ventilating);
   const [label, setLabel] = useState('Start Ventilation');
   const isDisabled = !isVentilatorOn && location.pathname !== QUICKSTART_ROUTE.path;
@@ -196,10 +232,7 @@ export const ToolBar = ({
           className={classes.toolContainer}
         >
           <Grid container item xs justify="flex-end" alignItems="center">
-            <span className={classes.paddingRight}>{`${
-              batteryPower !== undefined ? batteryPower.toFixed(0) : '--'
-            }${PERCENT}`}</span>
-            <PowerFullIcon style={{ fontSize: '2.5rem' }} />
+            <PowerIndicator />
             <HeaderClock />
             <ClockIcon style={{ fontSize: '2.5rem' }} />
           </Grid>

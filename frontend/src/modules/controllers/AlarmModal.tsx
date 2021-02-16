@@ -7,7 +7,6 @@ import { Range } from '../../store/controller/proto/mcu_pb';
 import { ALARM_LIMITS, ALARM_LIMITS_STANDBY } from '../../store/controller/types';
 import ModalPopup from './ModalPopup';
 import ValueClicker from './ValueClicker';
-import ValueSlider from './ValueSlider';
 
 const useStyles = makeStyles((theme: Theme) => ({
   contentContainer: {
@@ -85,8 +84,8 @@ export const AlarmModal = ({
 }: Props): JSX.Element => {
   const classes = useStyles();
   const [open, setOpen] = React.useState(false);
-  const [min] = React.useState(committedMin);
-  const [max] = React.useState(committedMax);
+  // const [min] = React.useState(committedMin);
+  // const [max] = React.useState(committedMax);
   const alarmLimits: Record<string, Range> = useSelector(
     getAlarmLimitsRequest,
     shallowEqual,
@@ -210,7 +209,7 @@ export const AlarmModal = ({
           />
         </Grid>
       </Grid>
-      <Grid container item xs alignItems="center">
+      {/* <Grid container item xs alignItems="center">
         <ValueSlider
           rangeValues={rangeValue}
           onChange={setRangeValue}
@@ -218,7 +217,7 @@ export const AlarmModal = ({
           max={max}
           step={step}
         />
-      </Grid>
+      </Grid> */}
     </Grid>
   );
 
