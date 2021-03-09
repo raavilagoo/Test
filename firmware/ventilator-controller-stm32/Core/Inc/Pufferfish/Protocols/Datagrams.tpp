@@ -26,7 +26,11 @@ IndexStatus Datagram<PayloadBuffer>::write(Util::ByteVector<output_size> &output
   output_buffer[DatagramHeaderProps::seq_offset] = seq_;
   length_ = static_cast<uint8_t>(payload_.size());
   output_buffer[DatagramHeaderProps::length_offset] = length_;
-  output_buffer.copy_from(payload_.buffer(), payload_.size(), DatagramHeaderProps::payload_offset);
+  if (output_buffer.copy_from(
+          payload_.buffer(), payload_.size(), DatagramHeaderProps::payload_offset) !=
+      IndexStatus::ok) {
+    return IndexStatus::out_of_bounds;
+  };
   return IndexStatus::ok;
 }
 
@@ -42,9 +46,11 @@ IndexStatus Datagram<PayloadBuffer>::parse(const Util::ByteVector<input_size> &i
   }
   seq_ = input_buffer[DatagramHeaderProps::seq_offset];
   length_ = input_buffer[DatagramHeaderProps::length_offset];
-  payload_.copy_from(
-      input_buffer.buffer() + DatagramHeaderProps::payload_offset,
-      input_buffer.size() - DatagramHeaderProps::payload_offset);
+  if (payload_.copy_from(
+          input_buffer.buffer() + DatagramHeaderProps::payload_offset,
+          input_buffer.size() - DatagramHeaderProps::payload_offset) != IndexStatus::ok) {
+    return IndexStatus::out_of_bounds;
+  };
   return IndexStatus::ok;
 }
 
