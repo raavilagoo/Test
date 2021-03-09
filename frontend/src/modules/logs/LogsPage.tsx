@@ -3,12 +3,18 @@ import { createStyles, makeStyles, useTheme } from '@material-ui/core/styles';
 import React, { useCallback, useEffect } from 'react';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { updateCommittedState } from '../../store/controller/actions';
-import { LogEvent } from '../../store/controller/proto/mcu_pb';
-import { getActiveLogEventIds, getNextLogEvents } from '../../store/controller/selectors';
+import { LogEvent, LogEventType, Range } from '../../store/controller/proto/mcu_pb';
+import {
+  getActiveLogEventIds,
+  getAlarmLimitsRequest,
+  getNextLogEvents,
+} from '../../store/controller/selectors';
 import { EXPECTED_LOG_EVENT_ID } from '../../store/controller/types';
-import { ALARM_EVENT_PATIENT, getEventType } from '../app/EventAlerts';
+import { setMultiPopupOpen } from '../app/Service';
+import { EventType, getEventType } from '../app/EventAlerts';
 import { AlarmModal } from '../controllers';
 import ModalPopup from '../controllers/ModalPopup';
+
 import SimpleTable, {
   getComparator,
   HeadCell,
@@ -25,7 +31,7 @@ import EventlogDetails from './container/EventlogDetails';
  */
 
 interface Data {
-  type: string;
+  type: LogEventType;
   alarm: string;
   time: number; // Note: Make this a date object?
   status: number;
@@ -39,11 +45,11 @@ interface Data {
 //
 
 const headCells: HeadCell[] = [
-  { id: 'type', numeric: false, disablePadding: true, label: 'Type' },
-  { id: 'alarm', numeric: true, disablePadding: false, label: 'Alarm' },
-  { id: 'time', numeric: true, disablePadding: false, label: 'Time/Date' },
-  { id: 'details', numeric: false, disablePadding: false, label: 'Details' },
-  { id: 'settings', numeric: true, disablePadding: false, label: 'Settings' },
+  { id: 'type', numeric: false, disablePadding: true, label: 'Type', enableSort: false },
+  { id: 'alarm', numeric: true, disablePadding: false, label: 'Alarm', enableSort: false },
+  { id: 'time', numeric: true, disablePadding: false, label: 'Time/Date', enableSort: true },
+  { id: 'details', numeric: false, disablePadding: false, label: 'Details', enableSort: false },
+  { id: 'settings', numeric: true, disablePadding: false, label: 'Settings', enableSort: false },
 ];
 
 const useStyles = makeStyles(() =>
@@ -88,8 +94,21 @@ export const LogsPage = ({ filter }: { filter?: boolean }): JSX.Element => {
   const theme = useTheme();
   const dispatch = useDispatch();
 
+  const getEventTypeLabel = (type: LogEventType): string => {
+    switch (type) {
+      case LogEventType.patient:
+        return 'Patient';
+      case LogEventType.control:
+        return 'Control';
+      case LogEventType.system:
+        return 'System';
+      default:
+        return 'System';
+    }
+  };
+
   const createData = (
-    type: string,
+    type: LogEventType,
     alarm: string,
     time: number,
     status: number,
@@ -114,6 +133,11 @@ export const LogsPage = ({ filter }: { filter?: boolean }): JSX.Element => {
   const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
   const loggedEvents = useSelector(getNextLogEvents, shallowEqual);
   const activeLogEventIds = useSelector(getActiveLogEventIds, shallowEqual);
+  const alarmLimits: Record<string, Range> = useSelector(
+    getAlarmLimitsRequest,
+    shallowEqual,
+  ) as Record<string, Range>;
+  const settingsAllowed = ['hr', 'spo2'];
 
   const updateLogEvent = useCallback(
     (maxId) => {
@@ -125,13 +149,25 @@ export const LogsPage = ({ filter }: { filter?: boolean }): JSX.Element => {
   useEffect(() => {
     const eventIds: number[] = [];
     const data: Data[] = [];
+
+    const getDetails = (event: LogEvent, eventType: EventType) => {
+      if (event.type === LogEventType.patient) {
+        if (eventType?.stateKey) {
+          return eventType.label.includes('high')
+            ? `Upper limit of ${eventType?.stateKey} is ${alarmLimits[eventType.stateKey].upper}`
+            : `Lower limit of ${eventType?.stateKey} is ${alarmLimits[eventType.stateKey].lower}`;
+        }
+      } else if (event.type === LogEventType.control) {
+        return event.oldValue != null && event.newValue != null
+          ? `Control ${eventType?.stateKey} changed from ${event.oldValue} ${eventType.unit} to ${event.newValue} ${eventType.unit}`
+          : '';
+      }
+      return '';
+    };
+
     loggedEvents.sort((a: LogEvent, b: LogEvent) => a.time - b.time);
     loggedEvents.forEach((event: LogEvent) => {
       const eventType = getEventType(event.code);
-      const diffString =
-        event.oldValue != null && event.newValue != null
-          ? `(${event.oldValue} ${eventType.unit} to ${event.newValue} ${eventType.unit})`
-          : '';
       eventIds.push(event.id);
       if (filter) {
         setPage(0);
@@ -143,7 +179,7 @@ export const LogsPage = ({ filter }: { filter?: boolean }): JSX.Element => {
               event.time,
               activeLogEventIds.indexOf(event.id) > -1 ? 1 : 0,
               event.id,
-              diffString,
+              getDetails(event, eventType),
               eventType.stateKey || '',
               eventType.head || '',
               eventType.unit || '',
@@ -158,7 +194,7 @@ export const LogsPage = ({ filter }: { filter?: boolean }): JSX.Element => {
             event.time,
             activeLogEventIds.indexOf(event.id) > -1 ? 1 : 0,
             event.id,
-            diffString,
+            getDetails(event, eventType),
             eventType.stateKey || '',
             eventType.head || '',
             eventType.unit || '',
@@ -169,7 +205,7 @@ export const LogsPage = ({ filter }: { filter?: boolean }): JSX.Element => {
     setRows(data.length ? data : []);
     // update ExpectedLogEvent
     updateLogEvent(Math.max(...eventIds));
-  }, [loggedEvents, activeLogEventIds, updateLogEvent, filter]);
+  }, [loggedEvents, activeLogEventIds, updateLogEvent, filter, alarmLimits]);
 
   const handleClose = () => {
     setOpen(false);
@@ -179,10 +215,10 @@ export const LogsPage = ({ filter }: { filter?: boolean }): JSX.Element => {
     handleClose();
   };
 
-  const typeColor = (type: string | undefined) => {
-    if (type === 'Operator') return { backgroundColor: theme.palette.primary.main };
-    if (type === 'Patient') return { backgroundColor: '#92D25B', color: 'black' };
-    if (type === 'System') return { backgroundColor: '#E68619' };
+  const typeColor = (type: LogEventType | undefined) => {
+    if (type === LogEventType.control) return { backgroundColor: theme.palette.primary.main };
+    if (type === LogEventType.patient) return { backgroundColor: '#92D25B', color: 'black' };
+    if (type === LogEventType.system) return { backgroundColor: '#E68619' };
     return { backgroundColor: '#E68619' };
   };
 
@@ -206,7 +242,9 @@ export const LogsPage = ({ filter }: { filter?: boolean }): JSX.Element => {
   };
 
   const onSettings = (row: Data) => {
-    setAlarmOpen(true);
+    if (row.stateKey) {
+      setMultiPopupOpen(true, row.stateKey);
+    }
     setCurrentRow(row);
   };
 
@@ -240,7 +278,9 @@ export const LogsPage = ({ filter }: { filter?: boolean }): JSX.Element => {
             return (
               <StyledTableRow
                 hover
-                onClick={(event: React.MouseEvent<unknown>) => handleClick(event, row.type)}
+                onClick={(event: React.MouseEvent<unknown>) =>
+                  handleClick(event, getEventTypeLabel(row.type))
+                }
                 tabIndex={-1}
                 key={row.id}
               >
@@ -250,7 +290,7 @@ export const LogsPage = ({ filter }: { filter?: boolean }): JSX.Element => {
                     className={classes.eventType}
                     style={typeColor(row.type)}
                   >
-                    {row.type}
+                    {getEventTypeLabel(row.type)}
                   </Button>
                   {/* {row.status ? (
                     <Button
@@ -284,7 +324,7 @@ export const LogsPage = ({ filter }: { filter?: boolean }): JSX.Element => {
                   {row.details}
                 </TableCell>
                 <TableCell component="td">
-                  {row.type === ALARM_EVENT_PATIENT && row.stateKey && (
+                  {row.type === LogEventType.patient && settingsAllowed.indexOf(row.stateKey) > -1 && (
                     <Button
                       variant="contained"
                       color="primary"
@@ -309,7 +349,7 @@ export const LogsPage = ({ filter }: { filter?: boolean }): JSX.Element => {
         label={
           <Grid container direction="row" justify="space-around" alignItems="center">
             <Grid xs={2} className={classes.typeWrapper2} style={typeColor(currentRow?.type)}>
-              {currentRow?.type}
+              {getEventTypeLabel(currentRow?.type as LogEventType)}
             </Grid>
             <Grid xs={9}>
               <Typography variant="h4">{currentRow?.alarm}</Typography>

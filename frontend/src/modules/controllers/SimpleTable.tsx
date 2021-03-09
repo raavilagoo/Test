@@ -53,6 +53,7 @@ export function stableSort<T>(array: T[], comparator: (a: T, b: T) => number): T
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
+    tableRowStyle: {},
     tableContainer: {
       width: '100%',
       border: `2px dashed ${theme.palette.background.default}`,
@@ -62,6 +63,13 @@ const useStyles = makeStyles((theme: Theme) =>
       minWidth: 500,
       padding: '3px solid black',
       backgroundColor: theme.palette.background.paper,
+      '& tbody': {
+        '& tr': {
+          '& td': {
+            borderBottom: 'none',
+          },
+        },
+      },
     },
     visuallyHidden: {
       border: 0,
@@ -94,6 +102,7 @@ export interface HeadCell {
   id: string | number;
   label: string;
   numeric: boolean;
+  enableSort: boolean;
 }
 
 export interface EnhancedTableProps {
@@ -137,7 +146,7 @@ function EnhancedTableHead(props: EnhancedTableProps) {
 
   return (
     <TableHead>
-      <TableRow>
+      <TableRow className={classes.tableRowStyle}>
         {headCells.map((headCell: HeadCell) => (
           <StyledTableCell
             key={headCell.id}
@@ -145,7 +154,7 @@ function EnhancedTableHead(props: EnhancedTableProps) {
             padding="default"
             sortDirection={orderBy === headCell.id ? order : false}
           >
-            {orderBy ? (
+            {headCell.enableSort && orderBy ? (
               <TableSortLabel
                 active={orderBy === headCell.id}
                 direction={orderBy === headCell.id ? order : 'asc'}
