@@ -1,0 +1,19 @@
+# STM32 build targets
+/Debug
+/Release
+/TestCatch2
+
+# Build config with Hash
+/.settings/language.settings.xml
+
+# STM32CubeMX configs with absolute paths
+/.mxproject
+/mx.scratch
+
+# Cppcheck builds
+/*-cppcheck-build-dir
+
+# Clion auto-generated files
+.idea
+CMakeLists_template.txt
+/cmake-build-*

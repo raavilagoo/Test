@@ -1,0 +1,8 @@
+# Misc
+.DS_Store
+extra_/
+.vscode/
+
+# Vim swapfiles
+*.swp
+*.swo

@@ -1,0 +1,101 @@
+name: Backend Checks
+
+on:
+  push:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend.yml'
+  pull_request:
+    types: [ready_for_review, review_requested]
+  pull_request_review:
+    types: [submitted]
+  milestone:
+    types: [opened, deleted]
+  workflow_dispatch:
+    inputs:
+      git-ref:
+        description: 'Git ref (optional)'
+        required: false
+
+defaults:
+  run:
+    working-directory: backend
+
+jobs:
+  types:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7]
+
+    steps:
+    - uses: actions/checkout@v1
+      name: Checkout repository
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        pip install poetry
+        poetry run pip install --upgrade pip
+        poetry run pip install tox
+
+    - name: Check type annotations
+      run: poetry run tox -e types
+
+  lint:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7]
+
+    steps:
+    - uses: actions/checkout@v1
+      name: Checkout repository
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        pip install poetry
+        poetry run pip install --upgrade pip
+        poetry run pip install tox
+
+    - name: Run linter
+      run: poetry run tox -e lint
+
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7]
+
+    steps:
+    - uses: actions/checkout@v1
+      name: Checkout repository
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        pip install poetry
+        poetry run pip install --upgrade pip
+        poetry run pip install tox
+
+    - name: Run unit tests
+      run: poetry run tox -e py37
+
+    - name: Archive code coverage results
+      uses: actions/upload-artifact@v2
+      with:
+        name: code-coverage-report
+        path: backend/htmlcov
